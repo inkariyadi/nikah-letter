@@ -370,7 +370,7 @@ body.open .player { transform: translate(-50%, 0); }
   </button>
   <div class="meta">
     <span class="t" id="songTitle">Slipping Through My Fingers</span>
-    <span class="s" id="songArtist">ABBA</span>
+    <span class="s" id="songArtist">Meryl Streep &amp; Amanda Seyfried</span>
   </div>
   <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
 </div>
@@ -379,20 +379,36 @@ body.open .player { transform: translate(-50%, 0); }
 
 <script>
 (function () {
-  /* Add one file name per photo, exactly as it appears in the photos folder.
-     Order follows the number at the start of each name. The caption is the name without that number and without the extension. */
-  var PHOTO_FILES = [
-    /* '01 Our first trip.jpg', */
+  /* One entry per photo, written exactly like the file name in the photos folder but without the extension
+     (.jpg, .png and so on are found automatically). Order follows the number at the start of each name.
+     The caption is the name without that number. */
+  var PHOTO_NAMES = [
+    "01 2012 - Our early friendship starts at SEKOM",
+    "02 2014 - 1st graduation together",
+    "03 2015 - MPK together",
+    "04 2016 - Meet with our group K3RKIL",
+    "05 2017 - Building Skyave together, our reason that the event come true",
+    "06 2018 - Our trip to museum macan before we go to college",
+    "07 2019 - Little date to Monas",
+    "08 2021 - In our era to being adults",
+    "09 2026 - Your bridal shower",
+    "10 17 Oct 2026 - With the most beautiful bride i'll ever known"
   ];
   var PHOTO_DIR = 'photos/';
-  var SONG = { src: 'song/slipping-through-my-fingers.mp3', title: 'Slipping Through My Fingers', artist: 'ABBA' };
+  var PHOTO_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'JPG', 'JPEG', 'PNG', 'WEBP', 'jfif'];
+  var SONG = { src: 'song/slipping-through-my-fingers.mp3', title: 'Slipping Through My Fingers', artist: 'Meryl Streep & Amanda Seyfried' };
 
   function captionFrom(name) {
-    return name.replace(/\.[^.]+$/, '').replace(/^\s*\d+\s*[-_.)]*\s*/, '').replace(/_/g, ' ').trim();
+    return name.replace(/^\s*\d+\s*[-_.)]*\s*/, '').replace(/_/g, ' ').trim();
   }
-  var PHOTOS = PHOTO_FILES.slice()
+  var PHOTOS = PHOTO_NAMES.slice()
     .sort(function (a, b) { return a.localeCompare(b, undefined, { numeric: true }); })
-    .map(function (f) { return { src: PHOTO_DIR + encodeURIComponent(f), caption: captionFrom(f) }; });
+    .map(function (n) {
+      return {
+        srcs: PHOTO_EXTS.map(function (e) { return PHOTO_DIR + encodeURIComponent(n + '.' + e); }),
+        caption: captionFrom(n)
+      };
+    });
 
   var $ = function (s) { return document.querySelector(s); };
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -449,8 +465,10 @@ body.open .player { transform: translate(-50%, 0); }
         s.style.setProperty('--ph-b', 'var(' + g[1] + ')');
         s.innerHTML = placeholderSVG(i) + '<span class="label">Your photo goes here</span>';
       } else {
-        var im = new Image();
-        im.src = it.src; im.alt = it.caption || ('Photo ' + (i + 1)); im.decoding = 'async';
+        var im = new Image(), tries = 0;
+        im.onerror = function () { tries++; if (tries < it.srcs.length) im.src = it.srcs[tries]; };
+        im.alt = it.caption || ('Photo ' + (i + 1)); im.decoding = 'async';
+        im.src = it.srcs[0];
         s.appendChild(im);
       }
       slidesEl.appendChild(s);
